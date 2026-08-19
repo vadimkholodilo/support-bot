@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/tonmendon/ton-subdomain)](https://github.com/tonmendon/ton-subdomain/blob/main/LICENSE)
 [![Telegram Bot](https://img.shields.io/badge/Bot-grey?logo=telegram)](https://core.telegram.org/bots)
-[![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+[![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://www.python.org/downloads/release/python-3140/)
 [![Redis](https://img.shields.io/badge/Redis-Yes?logo=redis&color=white)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-blue?logo=docker&logoColor=white)](https://www.docker.com/)
 
@@ -100,10 +100,17 @@ You need your own server or you can rent one from a hosting provider. For this, 
 5. Running a bot in a docker container:
 
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
 </details>
+
+For local development, install [uv](https://docs.astral.sh/uv/) and run:
+
+```bash
+uv sync
+uv run python -m app
+```
 
 ## Environment Variables Reference
 
