@@ -1,6 +1,7 @@
 services:
 
   bot:
+    image: ghcr.io/vadimkholodilo/support-bot:latest
     build:
       context: .
     container_name: support-bot
