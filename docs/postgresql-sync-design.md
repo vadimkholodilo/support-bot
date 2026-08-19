@@ -151,38 +151,34 @@ Do not start the next step until current step is reviewed.
 ### 8.1 Phase 0: Foundations
 
 #### Step 0.1 PostgreSQL runtime
-- [ ] Add postgres service to docker-compose.yml with persistent volume.
-- [ ] Add log rotation options for postgres container.
-- [ ] Keep bot and redis behavior unchanged.
+- [x] Add postgres service to docker-compose.yml with persistent volume.
+- [x] Add log rotation options for postgres container.
+- [x] Keep bot and redis behavior unchanged.
 
 Acceptance:
-- [ ] docker compose config --quiet passes.
-- [ ] docker compose up -d postgres starts successfully.
+- [x] docker compose config --quiet passes.
+- [x] docker compose up -d postgres starts successfully.
 
 #### Step 0.2 Configuration model
-- [ ] Extend app/config.py with PostgresConfig.
-- [ ] Add PostgreSQL env vars to .env.example.
-- [ ] Document vars in README.md.
+- [x] Extend app/config.py with PostgresConfig.
+- [x] Add PostgreSQL env vars to .env.example.
+- [x] Document vars in README.md.
 
 Required vars:
-- [ ] POSTGRES_HOST
-- [ ] POSTGRES_PORT
-- [ ] POSTGRES_DB
-- [ ] POSTGRES_USER
-- [ ] POSTGRES_PASSWORD
+- [x] POSTGRES_DSN
 
 Acceptance:
-- [ ] Config loads PostgreSQL settings correctly.
+- [x] Config loads PostgreSQL settings correctly.
 
 #### Step 0.3 Migration setup
-- [ ] Add migration tooling (Alembic, required).
-- [ ] Add SQLAlchemy async setup (engine + session management).
-- [ ] Configure Alembic for SQLAlchemy metadata and raw SQL migrations.
-- [ ] Create initial migration for message_events.
+- [x] Add migration tooling (Alembic, required).
+- [x] Add SQLAlchemy async setup (engine + session management).
+- [x] Configure Alembic for SQLAlchemy metadata and raw SQL migrations.
+- [x] Create initial migration for message_events.
 
 Acceptance:
-- [ ] Fresh DB migrates successfully.
-- [ ] Raw SQL migration flow is validated (upgrade and downgrade).
+- [x] Fresh DB migrates successfully.
+- [x] Raw SQL migration flow is validated (upgrade and downgrade).
 
 #### Step 0.4 High-volume baseline
 - [ ] Add partitioning strategy for message_events.

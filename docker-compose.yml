@@ -20,6 +20,20 @@ services:
         max-size: "1m"
         max-file: "3"
 
+  migrate:
+    image: ghcr.io/vadimkholodilo/support-bot:latest
+    build:
+      context: .
+    container_name: support-migrate
+    command: ["python", "-m", "app", "migrate"]
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - network
+
   postgres:
     image: postgres:17-alpine
     container_name: support-postgres
@@ -28,10 +42,16 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-support_bot}
       POSTGRES_USER: ${POSTGRES_USER:-support_bot}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-support_bot}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     logging:
       driver: json-file
       options:
