@@ -19,10 +19,13 @@ services:
     container_name: support-redis
     restart: always
     volumes:
-      - ./redis/data/:/data
+      - redis-data:/data
     networks:
       - network
 
 
 networks:
   network:
+
+volumes:
+  redis-data:
