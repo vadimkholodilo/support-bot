@@ -4,7 +4,7 @@
 
 This repository contains an async Telegram support bot built with aiogram. It receives private user messages, creates or reuses forum topics in a configured group, forwards messages between the user and the topic, and provides admin commands for moderation and newsletters.
 
-The application is stateful but has no relational database. Redis stores user records, forum-topic indexes, FSM state, and APScheduler jobs.
+The application is stateful. Redis stores user records, forum-topic indexes, FSM state, and APScheduler jobs. PostgreSQL stores durable message history and is managed through Alembic migrations.
 
 ## Runtime and Tooling
 
@@ -14,9 +14,11 @@ The application is stateful but has no relational database. Redis stores user re
 - Reproducible dependency resolution: `uv.lock`
 - Container base: Python 3.14 Alpine
 - Local orchestration: Docker Compose
-- Services: `bot` and `redis`
+- Services: `bot`, `migrate`, `postgres`, and `redis`
 - Redis persistence: Compose-managed named volume `redis-data`, mounted at `/data`; do not restore a repository bind mount or commit Redis data files
+- PostgreSQL data: Compose-managed named volume `postgres-data`; do not commit database files or bind-mount repository data
 - Bot container command: `python -m app`, defined in `Dockerfile`
+- Migration container command: `python -m app migrate`, using the bot image and exiting after `alembic upgrade head`
 - Required configuration: `.env` based on `.env.example`; never commit secrets
 - Dependency automation: `.github/dependabot.yml` updates Python and Docker dependencies weekly
 
@@ -28,6 +30,7 @@ uv add <package>
 uv lock
 uv lock --check
 uv run python -m app
+uv run python -m app migrate
 ```
 
 Do not recreate `requirements.txt` or manually edit `uv.lock` unless there is a specific lockfile repair reason. Keep dependency changes in `pyproject.toml` and regenerate the lockfile with uv.
@@ -55,7 +58,11 @@ When changing startup resources, update both startup and shutdown paths. Redis i
 - `app/config.py`: `BotConfig`, `RedisConfig`, `Config`, and `load_config()`. Add new environment variables here and document them in `.env.example` and `README.md`.
 - `app/logger.py`: logging setup, including console and rotating-file behavior. Preserve useful operational logs and avoid logging tokens or user secrets.
 - `Dockerfile`: multi-stage uv setup, Alpine runtime image, dependency installation into `/opt/venv`, and the default bot command. Keep the lockfile-based install reproducible.
-- `docker-compose.yml`: local bot/Redis orchestration, service dependency, network, and named Redis volume. Keep Redis data outside the repository.
+- `docker-compose.yml`: local bot, migrator, PostgreSQL, and Redis orchestration. The bot waits for Redis to start, PostgreSQL to become healthy, and the migrator to complete successfully.
+- `alembic.ini`, `alembic/env.py`, and `alembic/versions/`: migration runner configuration and versioned schema changes. Use raw SQL in migrations when precise PostgreSQL DDL is needed.
+- `app/cli.py`: application CLI entry points, including `migrate`.
+- `app/db/models.py`: SQLAlchemy metadata and durable PostgreSQL models.
+- `app/db/session.py`: async SQLAlchemy engine and session factory helpers.
 
 ### Bot orchestration
 
@@ -117,10 +124,13 @@ Middleware registration is in `app/bot/middlewares/__init__.py` and the implemen
 - New error category: define an exception in `app/bot/utils/exceptions.py` and add specific routing in `app/bot/handlers/errors.py`.
 - New dependency: use `uv add`, review the resolver output, commit both `pyproject.toml` and `uv.lock`, and test the Docker build.
 - New deployment behavior: update `Dockerfile`, `docker-compose.yml`, and README together. Do not put the bot command back into Compose unless intentionally overriding the image default.
+- New PostgreSQL schema: add an Alembic revision under `alembic/versions/`, prefer explicit SQL for PostgreSQL-specific DDL, and validate upgrade and downgrade against a fresh PostgreSQL service.
+- Applying migrations locally: run `docker compose run --rm migrate`; do not start the bot just to apply schema changes. The migrator must exit `0` on success and nonzero on failure.
 
 ## Behavioral Invariants
 
 - `BOT_TOKEN`, `BOT_DEV_ID`, `BOT_GROUP_ID`, `BOT_EMOJI_ID`, `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` are required configuration values.
+- `POSTGRES_DSN` is required by the bot and migrator. PostgreSQL container initialization separately uses `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from Compose defaults or the environment.
 - `DEV_ID` gates developer-only operations such as `/newsletter` and receives operational error notifications.
 - User-to-topic mapping is persisted in Redis; deleting or changing indexes can orphan conversations.
 - Forum-topic creation is rate-limited by Telegram and may require retry handling.
@@ -134,21 +144,22 @@ Before submitting a change, use the narrowest relevant checks, then run the cont
 
 ```bash
 uv lock --check
-uv run python -c 'import app; import aiogram; import redis; print("imports ok")'
+uv run python -c 'import app; import aiogram; import redis; import sqlalchemy; import asyncpg; import alembic; print("imports ok")'
 docker compose config --quiet
 docker build --tag support-bot:check .
+docker compose run --rm migrate
 ```
 
-For changes affecting Redis or startup, use the full integration check and clean it up afterward:
+For changes affecting Redis, PostgreSQL, migrations, or startup, use the full integration check and clean it up afterward:
 
 ```bash
 docker compose up --build -d
 docker compose ps
-docker compose logs --tail=150 bot redis
+docker compose logs --tail=150 bot migrate postgres redis
 docker compose down
 ```
 
-Successful startup should include Redis `Ready to accept connections` and bot scheduler/polling messages. Do not leave Compose services running after verification. There is currently no test suite, CI workflow, or lint configuration; do not claim those checks ran unless they are added and executed.
+Successful startup should include Redis `Ready to accept connections`, PostgreSQL readiness, successful migrator completion, and bot scheduler/polling messages. Do not leave Compose services running after verification. There is currently no test suite, CI workflow, or lint configuration; do not claim those checks ran unless they are added and executed.
 
 ## Change Style
 
