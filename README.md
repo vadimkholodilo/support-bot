@@ -127,6 +127,7 @@ Here is a comprehensive reference guide for the environment variables used in th
 | `REDIS_HOST`   | `str` | The hostname or IP address of the Redis server                | `redis`               |
 | `REDIS_PORT`   | `int` | The port number on which the Redis server is running          | `6379`                |
 | `REDIS_DB`     | `int` | The Redis database number                                     | `1`                   |
+| `POSTGRES_DSN` | `str` | Async PostgreSQL connection string                           | `postgresql+asyncpg://support_bot:***@postgres:5432/support_bot` |
 
 <details>
 <summary>List of supporting custom emoji ID's</summary>
