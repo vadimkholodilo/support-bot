@@ -385,12 +385,6 @@ I recommend using [aeza.net](https://aeza.net/?ref=362599) for your hosting need
 
 Learn more at [aeza.net](https://aeza.net/?ref=362599).
 
-## Donations
-
-**TON** - `EQC-3ilVr-W0Uc3pLrGJElwSaFxvhXXfkiQA3EwdVBHNNess`
-
-**USDT** (TRC-20) - `TDHMG7JRkmJBDD1qd4bNhdfoy2uzVd8ixA`
-
 ## Contribution
 
 We welcome your contributions! If you have ideas for improvement or have identified a bug, please create an issue or
