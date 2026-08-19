@@ -181,9 +181,9 @@ Acceptance:
 - [x] Raw SQL migration flow is validated (upgrade and downgrade).
 
 #### Step 0.4 High-volume baseline
-- [ ] Add partitioning strategy for message_events.
-- [ ] Define retention policy.
-- [ ] Add table-level autovacuum settings in migrations where needed.
+- [x] Add partitioning strategy for message_events.
+- [x] Define retention policy.
+- [x] Add table-level autovacuum settings in migrations where needed.
 
 Acceptance:
 - [ ] Baseline appears in migrations and is reproducible.
