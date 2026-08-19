@@ -158,3 +158,9 @@ Successful startup should include Redis `Ready to accept connections` and bot sc
 - Add tests when introducing test infrastructure or when a focused test location exists.
 - Keep comments rare and explain only non-obvious control flow.
 - Never commit `.env`, `.venv`, Redis data, generated logs, or local Docker state.
+
+## Pull Request Policy
+
+- **Default behavior**: Create pull requests in the user's fork (`vadimkholodilo/support-bot`)
+- **Only create PRs in the original repo** (`nessshon/support-bot`) if explicitly asked by the user
+- Remote configuration: `origin` points to the fork, `upstream` points to the original repository
