@@ -14,6 +14,11 @@ services:
       - network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "3"
 
   redis:
     image: redis:alpine
