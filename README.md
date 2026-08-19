@@ -52,6 +52,8 @@ Specific limits are not specified in the documentation, but the community has sh
 
 ## Usage
 
+Dependencies are managed with [uv](https://docs.astral.sh/uv/) using `pyproject.toml` and `uv.lock`.
+
 <details>
 <summary><b>Preparation</b></summary>
 
@@ -61,11 +63,11 @@ Specific limits are not specified in the documentation, but the community has sh
 4. Add the bot [What's my Telegram ID?](https://t.me/my_id_bot) to the group and save the group ID (referred to
    as `BOT_GROUP_ID` later).
 5. Optionally, customize the bot texts to fit your needs in the file
-   named [texts](https://github.com/nessshon/support-bot/tree/main/app/bot/utils/texts.py).
+   named [texts](app/bot/utils/texts.py).
 6. Optionally, add the language you need
-   to [SUPPORTED_LANGUAGES](https://github.com/nessshon/support-bot/tree/main/app/bot/utils/texts.py#L4)
+   to [SUPPORTED_LANGUAGES](app/bot/utils/texts.py#L4)
    and add the appropriate codes to
-   the [data](https://github.com/nessshon/support-bot/tree/main/app/bot/utils/texts.py#L49).
+   the [data](app/bot/utils/texts.py#L49).
 
 </details>
 
