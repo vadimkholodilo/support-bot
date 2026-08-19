@@ -1,6 +1,6 @@
 # 🤖 Support Bot
 
-[![License](https://img.shields.io/github/license/tonmendon/ton-subdomain)](https://github.com/tonmendon/ton-subdomain/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/nessshon/support-bot)](https://github.com/nessshon/support-bot/blob/main/LICENSE)
 [![Telegram Bot](https://img.shields.io/badge/Bot-grey?logo=telegram)](https://core.telegram.org/bots)
 [![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://www.python.org/downloads/release/python-3140/)
 [![Redis](https://img.shields.io/badge/Redis-Yes?logo=redis&color=white)](https://redis.io/)
@@ -10,9 +10,6 @@
 are intelligently categorized, promoting organized and streamlined discussion in your group. It provides features such
 as blocking unwanted users, silent mode in topics for discreet conversations, and more. Improve group communication with
 Support Bot!
-
-* Bot example: [@nessshonSupportBot](https://t.me/nessshonSupportBot)
-* Linked group example: [@nessshonSupportGroup](https://t.me/nessshonSupportGroup)
 
 **About Limits**:
 <blockquote>
@@ -371,19 +368,6 @@ Here is a comprehensive reference guide for the environment variables used in th
 </details>
 
 </details>
-
-## Recommended Hosting Provider
-
-I recommend using [aeza.net](https://aeza.net/?ref=362599) for your hosting needs. Here's why:
-
-- **24/7 Support**: Quick and effective support via chat or phone.
-- **Promo Plan for €1**: Great for testing Telegram bots and small websites.
-- **Easy Backups**: Secure backups on independent servers.
-- **Hourly Billing**: Rent a server by the hour for testing or demos.
-- **Anti-DDoS Protection**: Reliable and secure internet connection for your business.
-- **Multiple Payment Methods**: Supports various payment methods, including cryptocurrencies like TON.
-
-Learn more at [aeza.net](https://aeza.net/?ref=362599).
 
 ## Contribution
 
