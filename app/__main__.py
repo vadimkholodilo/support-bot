@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from datetime import datetime, timezone
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -16,6 +17,7 @@ from .bot.middlewares import register_middlewares
 from .cli import migrate
 from .config import load_config, Config
 from .db import create_async_engine, create_session_factory
+from .db.outbox import run_sync_outbox_retry
 from .logger import setup_logger
 
 
@@ -81,6 +83,16 @@ async def main() -> None:
     )
     apscheduler = AsyncIOScheduler(
         jobstores={"default": job_store},
+    )
+    apscheduler.add_job(
+        run_sync_outbox_retry,
+        "interval",
+        seconds=30,
+        id="retry_sync_outbox",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        next_run_time=datetime.now(timezone.utc),
     )
 
     # Initialize Redis storage

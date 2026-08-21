@@ -227,11 +227,11 @@ Acceptance:
 - [x] Failed writes are captured for retry.
 
 #### Step 2.3 Retry worker
-- [ ] Add periodic retry worker (APScheduler task or background loop).
-- [ ] Implement capped attempts and backoff.
+- [x] Add periodic retry worker (APScheduler task or background loop).
+- [x] Implement capped attempts and backoff.
 
 Acceptance:
-- [ ] Transient outage recovery backfills queued events.
+- [x] Transient outage recovery backfills queued events.
 
 ### 8.4 Phase 3: State dual-write
 
