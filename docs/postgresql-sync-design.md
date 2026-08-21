@@ -215,10 +215,10 @@ Acceptance:
 ### 8.3 Phase 2: Retry/outbox
 
 #### Step 2.1 Outbox schema
-- [ ] Add sync_outbox migration with idempotency key.
+- [x] Add sync_outbox migration with idempotency key.
 
 Acceptance:
-- [ ] Duplicate queue entries are prevented.
+- [x] Duplicate queue entries are prevented.
 
 #### Step 2.2 Queue on failure
 - [ ] Enqueue failed event writes into outbox.
