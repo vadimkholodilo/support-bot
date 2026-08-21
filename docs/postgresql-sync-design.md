@@ -242,11 +242,11 @@ Acceptance:
 - [x] Unique constraints and lookup indexes are in place.
 
 #### Step 3.2 Mirror updates
-- [ ] Mirror user updates from app/bot/middlewares/redis.py.
-- [ ] Mirror topic mapping updates from app/bot/utils/create_forum_topic.py.
+- [x] Mirror user updates from app/bot/middlewares/redis.py.
+- [x] Mirror topic mapping updates from app/bot/utils/create_forum_topic.py.
 
 Acceptance:
-- [ ] Redis remains primary; PostgreSQL mirrors are correct.
+- [x] Redis remains primary; PostgreSQL mirrors are correct.
 
 ### 8.5 Phase 4: Redis-first read with PostgreSQL fallback
 

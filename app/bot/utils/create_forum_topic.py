@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
@@ -8,6 +9,7 @@ from app.config import Config
 from .exceptions import CreateForumTopicException, NotEnoughRightsException, NotAForumException
 from .redis import RedisStorage
 from .redis.models import UserData
+from app.db.state import mirror_user_state
 
 
 async def get_or_create_forum_topic(
@@ -15,6 +17,7 @@ async def get_or_create_forum_topic(
         redis: RedisStorage,
         config: Config,
         user_data: UserData,
+        postgres_session_factory: async_sessionmaker[AsyncSession] | None = None,
 ) -> int:
     if user_data.message_thread_id is None:
         try:
@@ -24,6 +27,18 @@ async def get_or_create_forum_topic(
             )
             user_data.message_thread_id = message_thread_id
             await redis.update_user(user_data.id, user_data)
+            if postgres_session_factory is not None:
+                try:
+                    await mirror_user_state(postgres_session_factory, user_data)
+                except Exception:
+                    logging.exception(
+                        "Failed to mirror topic mapping to PostgreSQL",
+                        extra={
+                            "telegram_user_id": user_data.id,
+                            "message_thread_id": message_thread_id,
+                            "persistence_status": "failed",
+                        },
+                    )
 
         except Exception as e:
             await bot.send_message(config.bot.DEV_ID, str(e))

@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import Command, MagicData
 from aiogram.types import Message
 from aiogram_newsletter.manager import ANManager
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.bot.handlers.private.windows import Window
 from app.bot.manager import Manager
@@ -19,6 +20,7 @@ async def handler(
         manager: Manager,
         redis: RedisStorage,
         user_data: UserData,
+        postgres_session_factory: async_sessionmaker[AsyncSession],
 ) -> None:
     """
     Handles the /start command.
@@ -39,7 +41,13 @@ async def handler(
     await manager.delete_message(message)
 
     # Create the forum topic
-    await get_or_create_forum_topic(message.bot, redis, manager.config, user_data)
+    await get_or_create_forum_topic(
+        message.bot,
+        redis,
+        manager.config,
+        user_data,
+        postgres_session_factory,
+    )
 
 
 @router.message(Command("language"))

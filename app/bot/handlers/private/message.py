@@ -17,6 +17,7 @@ from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
 from app.db.message_events import insert_message_event
 from app.db.outbox import enqueue_sync_event
+from app.db.state import mirror_user_state
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,7 @@ async def handle_incoming_message(
             redis,
             manager.config,
             user_data,
+            postgres_session_factory,
         )
 
         if not album:
@@ -174,6 +176,7 @@ async def handle_incoming_message(
                 user_data.full_name,
             )
             await redis.update_user(user_data.id, user_data)
+            await mirror_user_state(postgres_session_factory, user_data)
             await copy_message_to_topic()
         else:
             raise

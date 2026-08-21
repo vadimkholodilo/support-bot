@@ -67,3 +67,33 @@ class SyncOutbox(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    username: Mapped[str | None] = mapped_column(Text)
+    full_name: Mapped[str] = mapped_column(Text)
+    language_code: Mapped[str | None] = mapped_column(Text)
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class UserTopic(Base):
+    __tablename__ = "user_topics"
+
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    message_thread_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    message_silent_mode: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false"
+    )
+    message_silent_id: Mapped[int | None] = mapped_column(BigInteger)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
