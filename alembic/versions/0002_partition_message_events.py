@@ -114,7 +114,6 @@ def upgrade() -> None:
             ON message_events USING GIN (payload_json)
         """
     )
-    op.execute("ALTER TABLE message_events" + _PARTITION_OPTIONS)
     op.execute(
         """
         DO $$
