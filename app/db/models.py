@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Index, Text, func
+from sqlalchemy import BigInteger, Boolean, DateTime, Index, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -18,7 +18,12 @@ class MessageEvent(Base):
         Index("ix_message_events_payload_json", "payload_json", postgresql_using="gin"),
     )
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True,
+        server_default=text("nextval('message_events_id_seq')"),
+    )
     direction: Mapped[str] = mapped_column(Text)
     telegram_user_id: Mapped[int | None] = mapped_column(BigInteger)
     group_chat_id: Mapped[int | None] = mapped_column(BigInteger)

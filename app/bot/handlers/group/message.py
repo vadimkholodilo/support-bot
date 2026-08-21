@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Optional
 
 from aiogram import Router, F
@@ -10,6 +11,10 @@ from aiogram.utils.markdown import hlink
 from app.bot.manager import Manager
 from app.bot.types.album import Album
 from app.bot.utils.redis import RedisStorage
+from app.db.message_events import insert_message_event
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 router.message.filter(
@@ -54,7 +59,13 @@ async def handler(message: Message) -> None:
 
 @router.message(F.media_group_id, F.from_user[F.is_bot.is_(False)])
 @router.message(F.media_group_id.is_(None), F.from_user[F.is_bot.is_(False)])
-async def handler(message: Message, manager: Manager, redis: RedisStorage, album: Optional[Album] = None) -> None:
+async def handler(
+    message: Message,
+    manager: Manager,
+    redis: RedisStorage,
+    postgres_session_factory: async_sessionmaker[AsyncSession],
+    album: Optional[Album] = None,
+) -> None:
     """
     Handles user messages and sends them to the respective user.
     If silent mode is enabled for the user, the messages are ignored.
@@ -76,9 +87,40 @@ async def handler(message: Message, manager: Manager, redis: RedisStorage, album
 
     try:
         if not album:
-            await message.copy_to(chat_id=user_data.id)
+            copied_messages = await message.copy_to(chat_id=user_data.id)
         else:
-            await album.copy_to(chat_id=user_data.id)
+            copied_messages = await album.copy_to(chat_id=user_data.id)
+
+        target_message_id = (
+            copied_messages.message_id
+            if not album
+            else copied_messages[0].message_id
+        )
+        try:
+            await insert_message_event(
+                postgres_session_factory,
+                direction="group_to_private",
+                telegram_user_id=user_data.id,
+                group_chat_id=message.chat.id,
+                private_chat_id=user_data.id,
+                message_thread_id=message.message_thread_id,
+                source_message_id=message.message_id,
+                target_message_id=target_message_id,
+                media_group_id=message.media_group_id,
+                has_media=bool(message.content_type != "text"),
+                payload_json={"message_id": message.message_id},
+            )
+        except Exception:
+            logger.exception(
+                "Failed to persist message event",
+                extra={
+                    "direction": "group_to_private",
+                    "telegram_user_id": user_data.id,
+                    "message_thread_id": message.message_thread_id,
+                    "source_message_id": message.message_id,
+                    "persistence_status": "failed",
+                },
+            )
 
     except TelegramAPIError as ex:
         if "blocked" in ex.message:

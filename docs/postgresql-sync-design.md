@@ -191,16 +191,16 @@ Acceptance:
 ### 8.2 Phase 1: Message history writes
 
 #### Step 1.1 PostgreSQL write layer
-- [ ] Add dedicated PostgreSQL write module.
-- [ ] Implement async insert for message_events.
+- [x] Add dedicated PostgreSQL write module.
+- [x] Implement async insert for message_events.
 
 Acceptance:
 - [ ] Minimal event insert works.
 
 #### Step 1.2 Handler integration
-- [ ] Write event records from app/bot/handlers/private/message.py.
-- [ ] Write event records from app/bot/handlers/group/message.py.
-- [ ] Keep forwarding path log-and-continue on DB failures.
+- [x] Write event records from app/bot/handlers/private/message.py.
+- [x] Write event records from app/bot/handlers/group/message.py.
+- [x] Keep forwarding path log-and-continue on DB failures.
 
 Acceptance:
 - [ ] Forwarding is unaffected by PostgreSQL outages.
