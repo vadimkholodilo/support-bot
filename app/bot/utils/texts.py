@@ -109,6 +109,9 @@ class TextMessage(Text):
                 "silent_mode_disabled": (
                     "<b>Silent mode deactivated!</b> The user will receive all messages."
                 ),
+                "message_blocked_admin_mention": (
+                    "<b>Not forwarded to the user!</b> The message mentions an admin."
+                ),
             },
             "ru": {
                 "select_language": f"👋 <b>Привет</b>, {hbold('{full_name}')}!\n\nВыберите язык:",
@@ -162,6 +165,9 @@ class TextMessage(Text):
                 ),
                 "silent_mode_disabled": (
                     "<b>Тихий режим деактивирован!</b> Пользователь будет получать все сообщения."
+                ),
+                "message_blocked_admin_mention": (
+                    "<b>Не переслано пользователю!</b> Сообщение содержит упоминание администратора."
                 ),
             },
         }

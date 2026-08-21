@@ -10,6 +10,11 @@ from aiogram.utils.markdown import hlink
 
 from app.bot.manager import Manager
 from app.bot.types.album import Album
+from app.bot.utils.admins import (
+    collect_mention_entities,
+    get_group_admin_ids,
+    message_mentions_admin,
+)
 from app.bot.utils.redis import RedisStorage
 from app.db.message_events import insert_message_event
 from app.db.outbox import enqueue_sync_event
@@ -82,6 +87,55 @@ async def handler(
 
     if user_data.message_silent_mode:
         # If silent mode is enabled, ignore all messages.
+        return
+
+    if not album:
+        mention_text = message.text or message.caption
+        mention_entities = message.entities or message.caption_entities
+    else:
+        mention_text, mention_entities = collect_mention_entities(album.messages)
+
+    admin_ids, admin_usernames = await get_group_admin_ids(message.bot, message.chat.id)
+    if message_mentions_admin(mention_text, mention_entities, admin_ids, admin_usernames):
+        logger.warning(
+            "Blocked message forwarding due to admin mention",
+            extra={
+                "direction": "group_to_private",
+                "telegram_user_id": user_data.id,
+                "message_thread_id": message.message_thread_id,
+                "source_message_id": message.message_id,
+                "persistence_status": "blocked",
+            },
+        )
+        try:
+            await insert_message_event(
+                postgres_session_factory,
+                direction="group_to_private",
+                telegram_user_id=user_data.id,
+                group_chat_id=message.chat.id,
+                private_chat_id=user_data.id,
+                message_thread_id=message.message_thread_id,
+                source_message_id=message.message_id,
+                media_group_id=message.media_group_id,
+                has_media=bool(message.content_type != "text"),
+                status="blocked",
+                payload_json={"reason": "admin_mention"},
+            )
+        except Exception:
+            logger.exception(
+                "Failed to persist blocked message event",
+                extra={
+                    "direction": "group_to_private",
+                    "telegram_user_id": user_data.id,
+                    "message_thread_id": message.message_thread_id,
+                    "source_message_id": message.message_id,
+                    "persistence_status": "failed",
+                },
+            )
+
+        msg = await message.reply(manager.text_message.get("message_blocked_admin_mention"))
+        await asyncio.sleep(5)
+        await msg.delete()
         return
 
     text = manager.text_message.get("message_sent_to_user")
