@@ -236,10 +236,10 @@ Acceptance:
 ### 8.4 Phase 3: State dual-write
 
 #### Step 3.1 State tables
-- [ ] Add migrations for users and user_topics.
+- [x] Add migrations for users and user_topics.
 
 Acceptance:
-- [ ] Unique constraints and lookup indexes are in place.
+- [x] Unique constraints and lookup indexes are in place.
 
 #### Step 3.2 Mirror updates
 - [ ] Mirror user updates from app/bot/middlewares/redis.py.
