@@ -151,43 +151,39 @@ Do not start the next step until current step is reviewed.
 ### 8.1 Phase 0: Foundations
 
 #### Step 0.1 PostgreSQL runtime
-- [ ] Add postgres service to docker-compose.yml with persistent volume.
-- [ ] Add log rotation options for postgres container.
-- [ ] Keep bot and redis behavior unchanged.
+- [x] Add postgres service to docker-compose.yml with persistent volume.
+- [x] Add log rotation options for postgres container.
+- [x] Keep bot and redis behavior unchanged.
 
 Acceptance:
-- [ ] docker compose config --quiet passes.
-- [ ] docker compose up -d postgres starts successfully.
+- [x] docker compose config --quiet passes.
+- [x] docker compose up -d postgres starts successfully.
 
 #### Step 0.2 Configuration model
-- [ ] Extend app/config.py with PostgresConfig.
-- [ ] Add PostgreSQL env vars to .env.example.
-- [ ] Document vars in README.md.
+- [x] Extend app/config.py with PostgresConfig.
+- [x] Add PostgreSQL env vars to .env.example.
+- [x] Document vars in README.md.
 
 Required vars:
-- [ ] POSTGRES_HOST
-- [ ] POSTGRES_PORT
-- [ ] POSTGRES_DB
-- [ ] POSTGRES_USER
-- [ ] POSTGRES_PASSWORD
+- [x] POSTGRES_DSN
 
 Acceptance:
-- [ ] Config loads PostgreSQL settings correctly.
+- [x] Config loads PostgreSQL settings correctly.
 
 #### Step 0.3 Migration setup
-- [ ] Add migration tooling (Alembic, required).
-- [ ] Add SQLAlchemy async setup (engine + session management).
-- [ ] Configure Alembic for SQLAlchemy metadata and raw SQL migrations.
-- [ ] Create initial migration for message_events.
+- [x] Add migration tooling (Alembic, required).
+- [x] Add SQLAlchemy async setup (engine + session management).
+- [x] Configure Alembic for SQLAlchemy metadata and raw SQL migrations.
+- [x] Create initial migration for message_events.
 
 Acceptance:
-- [ ] Fresh DB migrates successfully.
-- [ ] Raw SQL migration flow is validated (upgrade and downgrade).
+- [x] Fresh DB migrates successfully.
+- [x] Raw SQL migration flow is validated (upgrade and downgrade).
 
 #### Step 0.4 High-volume baseline
-- [ ] Add partitioning strategy for message_events.
-- [ ] Define retention policy.
-- [ ] Add table-level autovacuum settings in migrations where needed.
+- [x] Add partitioning strategy for message_events.
+- [x] Define retention policy.
+- [x] Add table-level autovacuum settings in migrations where needed.
 
 Acceptance:
 - [ ] Baseline appears in migrations and is reproducible.
@@ -195,62 +191,62 @@ Acceptance:
 ### 8.2 Phase 1: Message history writes
 
 #### Step 1.1 PostgreSQL write layer
-- [ ] Add dedicated PostgreSQL write module.
-- [ ] Implement async insert for message_events.
+- [x] Add dedicated PostgreSQL write module.
+- [x] Implement async insert for message_events.
 
 Acceptance:
 - [ ] Minimal event insert works.
 
 #### Step 1.2 Handler integration
-- [ ] Write event records from app/bot/handlers/private/message.py.
-- [ ] Write event records from app/bot/handlers/group/message.py.
-- [ ] Keep forwarding path log-and-continue on DB failures.
+- [x] Write event records from app/bot/handlers/private/message.py.
+- [x] Write event records from app/bot/handlers/group/message.py.
+- [x] Keep forwarding path log-and-continue on DB failures.
 
 Acceptance:
 - [ ] Forwarding is unaffected by PostgreSQL outages.
 - [ ] Events are persisted when PostgreSQL is available.
 
 #### Step 1.3 Structured logs
-- [ ] Add structured persistence logs for success/failure.
+- [x] Add structured persistence logs for success/failure.
 
 Acceptance:
-- [ ] Manual log review is enough to diagnose persistence failures.
+- [x] Manual log review is enough to diagnose persistence failures.
 
 ### 8.3 Phase 2: Retry/outbox
 
 #### Step 2.1 Outbox schema
-- [ ] Add sync_outbox migration with idempotency key.
+- [x] Add sync_outbox migration with idempotency key.
 
 Acceptance:
-- [ ] Duplicate queue entries are prevented.
+- [x] Duplicate queue entries are prevented.
 
 #### Step 2.2 Queue on failure
-- [ ] Enqueue failed event writes into outbox.
+- [x] Enqueue failed event writes into outbox.
 
 Acceptance:
-- [ ] Failed writes are captured for retry.
+- [x] Failed writes are captured for retry.
 
 #### Step 2.3 Retry worker
-- [ ] Add periodic retry worker (APScheduler task or background loop).
-- [ ] Implement capped attempts and backoff.
+- [x] Add periodic retry worker (APScheduler task or background loop).
+- [x] Implement capped attempts and backoff.
 
 Acceptance:
-- [ ] Transient outage recovery backfills queued events.
+- [x] Transient outage recovery backfills queued events.
 
 ### 8.4 Phase 3: State dual-write
 
 #### Step 3.1 State tables
-- [ ] Add migrations for users and user_topics.
+- [x] Add migrations for users and user_topics.
 
 Acceptance:
-- [ ] Unique constraints and lookup indexes are in place.
+- [x] Unique constraints and lookup indexes are in place.
 
 #### Step 3.2 Mirror updates
-- [ ] Mirror user updates from app/bot/middlewares/redis.py.
-- [ ] Mirror topic mapping updates from app/bot/utils/create_forum_topic.py.
+- [x] Mirror user updates from app/bot/middlewares/redis.py.
+- [x] Mirror topic mapping updates from app/bot/utils/create_forum_topic.py.
 
 Acceptance:
-- [ ] Redis remains primary; PostgreSQL mirrors are correct.
+- [x] Redis remains primary; PostgreSQL mirrors are correct.
 
 ### 8.5 Phase 4: Redis-first read with PostgreSQL fallback
 

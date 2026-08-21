@@ -108,8 +108,16 @@ For local development, install [uv](https://docs.astral.sh/uv/) and run:
 
 ```bash
 uv sync
-uv run python -m app
+docker compose up -d postgres redis
+REDIS_HOST=127.0.0.1 POSTGRES_DSN=postgresql+asyncpg://support_bot:support_bot@127.0.0.1:5432/support_bot uv run python -m app
 ```
+
+The Compose override publishes Redis on `127.0.0.1:6379` and PostgreSQL on
+`127.0.0.1:5432`. The bot service is disabled by default in development, so the command above
+starts the infrastructure and applies migrations while the bot runs directly on the host. To run the bot in a
+container during development, use `docker compose --profile dev-bot up`.
+The development `bot` and `migrate` services use `pull_policy: build`, so they always build from
+the local Dockerfile instead of pulling the published image.
 
 ## Environment Variables Reference
 
@@ -127,6 +135,7 @@ Here is a comprehensive reference guide for the environment variables used in th
 | `REDIS_HOST`   | `str` | The hostname or IP address of the Redis server                | `redis`               |
 | `REDIS_PORT`   | `int` | The port number on which the Redis server is running          | `6379`                |
 | `REDIS_DB`     | `int` | The Redis database number                                     | `1`                   |
+| `POSTGRES_DSN` | `str` | Async PostgreSQL connection string                           | `postgresql+asyncpg://support_bot:***@postgres:5432/support_bot` |
 
 <details>
 <summary>List of supporting custom emoji ID's</summary>

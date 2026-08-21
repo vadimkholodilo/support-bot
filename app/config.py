@@ -44,6 +44,11 @@ class RedisConfig:
 
 
 @dataclass
+class PostgresConfig:
+    DSN: str
+
+
+@dataclass
 class Config:
     """
     Data class representing the overall configuration for the application.
@@ -54,6 +59,7 @@ class Config:
     """
     bot: BotConfig
     redis: RedisConfig
+    postgres: PostgresConfig
 
 
 def load_config() -> Config:
@@ -76,5 +82,8 @@ def load_config() -> Config:
             HOST=env.str("REDIS_HOST"),
             PORT=env.int("REDIS_PORT"),
             DB=env.int("REDIS_DB"),
+        ),
+        postgres=PostgresConfig(
+            DSN=env.str("POSTGRES_DSN"),
         ),
     )

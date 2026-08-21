@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, Dict, Any, Awaitable
 
 from aiogram import BaseMiddleware
@@ -7,6 +8,9 @@ from redis.asyncio import Redis
 from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
 from app.bot.utils.texts import SUPPORTED_LANGUAGES
+from app.db.state import mirror_user_state
+
+logger = logging.getLogger(__name__)
 
 
 class RedisMiddleware(BaseMiddleware):
@@ -69,6 +73,18 @@ class RedisMiddleware(BaseMiddleware):
 
             # Update user data in Redis
             await redis.update_user(user.id, user_data)
+            postgres_session_factory = data.get("postgres_session_factory")
+            if postgres_session_factory is not None:
+                try:
+                    await mirror_user_state(postgres_session_factory, user_data)
+                except Exception:
+                    logger.exception(
+                        "Failed to mirror user state to PostgreSQL",
+                        extra={
+                            "telegram_user_id": user_data.id,
+                            "persistence_status": "failed",
+                        },
+                    )
         else:
             # For group chats or if the user object is None, set user_data to None
             user_data = None

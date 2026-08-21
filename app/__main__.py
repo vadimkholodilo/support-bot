@@ -1,4 +1,7 @@
 import asyncio
+import logging
+import sys
+from datetime import datetime, timezone
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -6,11 +9,15 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from .bot import commands
 from .bot.handlers import include_routers
 from .bot.middlewares import register_middlewares
+from .cli import migrate
 from .config import load_config, Config
+from .db import create_async_engine, create_session_factory
+from .db.outbox import run_sync_outbox_retry
 from .logger import setup_logger
 
 
@@ -19,6 +26,7 @@ async def on_shutdown(
     dispatcher: Dispatcher,
     config: Config,
     bot: Bot,
+    postgres_engine: AsyncEngine,
 ) -> None:
     """
     Shutdown event handler. This runs when the bot shuts down.
@@ -30,6 +38,7 @@ async def on_shutdown(
     """
     # Stop apscheduler
     apscheduler.shutdown()
+    await postgres_engine.dispose()
     # Delete commands and close storage when shutting down
     await commands.delete(bot, config)
     await dispatcher.storage.close()
@@ -62,6 +71,10 @@ async def main() -> None:
     # Load config
     config = load_config()
 
+    # Initialize PostgreSQL resources
+    postgres_engine = create_async_engine(config.postgres.DSN, pool_pre_ping=True)
+    postgres_session_factory: async_sessionmaker = create_session_factory(postgres_engine)
+
     # Initialize apscheduler
     job_store = RedisJobStore(
         host=config.redis.HOST,
@@ -70,6 +83,16 @@ async def main() -> None:
     )
     apscheduler = AsyncIOScheduler(
         jobstores={"default": job_store},
+    )
+    apscheduler.add_job(
+        run_sync_outbox_retry,
+        "interval",
+        seconds=30,
+        id="retry_sync_outbox",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        next_run_time=datetime.now(timezone.utc),
     )
 
     # Initialize Redis storage
@@ -89,6 +112,8 @@ async def main() -> None:
         storage=storage,
         config=config,
         bot=bot,
+        postgres_session_factory=postgres_session_factory,
+        postgres_engine=postgres_engine,
     )
 
     # Register startup handler
@@ -111,5 +136,14 @@ async def main() -> None:
 if __name__ == "__main__":
     # Set up logging
     setup_logger()
-    # Run the bot
-    asyncio.run(main())
+    if len(sys.argv) > 1:
+        if sys.argv[1] != "migrate" or len(sys.argv) != 2:
+            raise SystemExit("Usage: python -m app [migrate]")
+        try:
+            migrate()
+        except Exception:
+            logging.getLogger(__name__).exception("Database migration failed")
+            raise SystemExit(1)
+    else:
+        # Run the bot
+        asyncio.run(main())
