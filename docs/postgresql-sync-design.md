@@ -207,10 +207,10 @@ Acceptance:
 - [ ] Events are persisted when PostgreSQL is available.
 
 #### Step 1.3 Structured logs
-- [ ] Add structured persistence logs for success/failure.
+- [x] Add structured persistence logs for success/failure.
 
 Acceptance:
-- [ ] Manual log review is enough to diagnose persistence failures.
+- [x] Manual log review is enough to diagnose persistence failures.
 
 ### 8.3 Phase 2: Retry/outbox
 

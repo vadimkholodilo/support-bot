@@ -109,6 +109,17 @@ async def handle_incoming_message(
                 has_media=bool(message.content_type != "text"),
                 payload_json={"message_id": message.message_id},
             )
+            logger.info(
+                "Persisted message event",
+                extra={
+                    "direction": "private_to_group",
+                    "telegram_user_id": user_data.id,
+                    "message_thread_id": message_thread_id,
+                    "source_message_id": message.message_id,
+                    "target_message_id": target_message_id,
+                    "persistence_status": "success",
+                },
+            )
         except Exception:
             logger.exception(
                 "Failed to persist message event",
