@@ -221,10 +221,10 @@ Acceptance:
 - [x] Duplicate queue entries are prevented.
 
 #### Step 2.2 Queue on failure
-- [ ] Enqueue failed event writes into outbox.
+- [x] Enqueue failed event writes into outbox.
 
 Acceptance:
-- [ ] Failed writes are captured for retry.
+- [x] Failed writes are captured for retry.
 
 #### Step 2.3 Retry worker
 - [ ] Add periodic retry worker (APScheduler task or background loop).

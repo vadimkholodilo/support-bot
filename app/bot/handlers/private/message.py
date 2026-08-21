@@ -16,6 +16,7 @@ from app.bot.utils.create_forum_topic import (
 from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
 from app.db.message_events import insert_message_event
+from app.db.outbox import enqueue_sync_event
 
 logger = logging.getLogger(__name__)
 
@@ -95,19 +96,22 @@ async def handle_incoming_message(
             if not album
             else forwarded_messages[0].message_id
         )
+        event_data = {
+            "direction": "private_to_group",
+            "telegram_user_id": user_data.id,
+            "group_chat_id": manager.config.bot.GROUP_ID,
+            "private_chat_id": message.chat.id,
+            "message_thread_id": message_thread_id,
+            "source_message_id": message.message_id,
+            "target_message_id": target_message_id,
+            "media_group_id": message.media_group_id,
+            "has_media": bool(message.content_type != "text"),
+            "payload_json": {"message_id": message.message_id},
+        }
         try:
             await insert_message_event(
                 postgres_session_factory,
-                direction="private_to_group",
-                telegram_user_id=user_data.id,
-                group_chat_id=manager.config.bot.GROUP_ID,
-                private_chat_id=message.chat.id,
-                message_thread_id=message_thread_id,
-                source_message_id=message.message_id,
-                target_message_id=target_message_id,
-                media_group_id=message.media_group_id,
-                has_media=bool(message.content_type != "text"),
-                payload_json={"message_id": message.message_id},
+                **event_data,
             )
             logger.info(
                 "Persisted message event",
@@ -131,6 +135,34 @@ async def handle_incoming_message(
                     "persistence_status": "failed",
                 },
             )
+            try:
+                queued = await enqueue_sync_event(
+                    postgres_session_factory,
+                    event_type="message_event",
+                    event_key=f"private_to_group:{message.chat.id}:{message.message_id}",
+                    payload_json=event_data,
+                )
+                logger.warning(
+                    "Queued failed message event for retry",
+                    extra={
+                        "direction": "private_to_group",
+                        "telegram_user_id": user_data.id,
+                        "message_thread_id": message_thread_id,
+                        "source_message_id": message.message_id,
+                        "persistence_status": "queued" if queued else "already_queued",
+                    },
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to queue message event for retry",
+                    extra={
+                        "direction": "private_to_group",
+                        "telegram_user_id": user_data.id,
+                        "message_thread_id": message_thread_id,
+                        "source_message_id": message.message_id,
+                        "persistence_status": "queue_failed",
+                    },
+                )
 
     try:
         await copy_message_to_topic()

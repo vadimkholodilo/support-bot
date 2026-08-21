@@ -12,6 +12,7 @@ from app.bot.manager import Manager
 from app.bot.types.album import Album
 from app.bot.utils.redis import RedisStorage
 from app.db.message_events import insert_message_event
+from app.db.outbox import enqueue_sync_event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
@@ -96,19 +97,22 @@ async def handler(
             if not album
             else copied_messages[0].message_id
         )
+        event_data = {
+            "direction": "group_to_private",
+            "telegram_user_id": user_data.id,
+            "group_chat_id": message.chat.id,
+            "private_chat_id": user_data.id,
+            "message_thread_id": message.message_thread_id,
+            "source_message_id": message.message_id,
+            "target_message_id": target_message_id,
+            "media_group_id": message.media_group_id,
+            "has_media": bool(message.content_type != "text"),
+            "payload_json": {"message_id": message.message_id},
+        }
         try:
             await insert_message_event(
                 postgres_session_factory,
-                direction="group_to_private",
-                telegram_user_id=user_data.id,
-                group_chat_id=message.chat.id,
-                private_chat_id=user_data.id,
-                message_thread_id=message.message_thread_id,
-                source_message_id=message.message_id,
-                target_message_id=target_message_id,
-                media_group_id=message.media_group_id,
-                has_media=bool(message.content_type != "text"),
-                payload_json={"message_id": message.message_id},
+                **event_data,
             )
             logger.info(
                 "Persisted message event",
@@ -132,6 +136,34 @@ async def handler(
                     "persistence_status": "failed",
                 },
             )
+            try:
+                queued = await enqueue_sync_event(
+                    postgres_session_factory,
+                    event_type="message_event",
+                    event_key=f"group_to_private:{message.chat.id}:{message.message_id}",
+                    payload_json=event_data,
+                )
+                logger.warning(
+                    "Queued failed message event for retry",
+                    extra={
+                        "direction": "group_to_private",
+                        "telegram_user_id": user_data.id,
+                        "message_thread_id": message.message_thread_id,
+                        "source_message_id": message.message_id,
+                        "persistence_status": "queued" if queued else "already_queued",
+                    },
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to queue message event for retry",
+                    extra={
+                        "direction": "group_to_private",
+                        "telegram_user_id": user_data.id,
+                        "message_thread_id": message.message_thread_id,
+                        "source_message_id": message.message_id,
+                        "persistence_status": "queue_failed",
+                    },
+                )
 
     except TelegramAPIError as ex:
         if "blocked" in ex.message:

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Index, Text, func, text
+from sqlalchemy import BigInteger, Boolean, DateTime, Index, Integer, Text, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -39,4 +39,31 @@ class MessageEvent(Base):
     error_text: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), primary_key=True, server_default=func.now()
+    )
+
+
+class SyncOutbox(Base):
+    __tablename__ = "sync_outbox"
+    __table_args__ = (
+        UniqueConstraint(
+            "event_type",
+            "event_key",
+            name="uq_sync_outbox_event_type_event_key",
+        ),
+        Index("ix_sync_outbox_status_next_attempt_at", "status", "next_attempt_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    event_type: Mapped[str] = mapped_column(Text)
+    event_key: Mapped[str] = mapped_column(Text)
+    payload_json: Mapped[dict] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(Text, default="pending", server_default="pending")
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )
