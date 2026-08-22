@@ -59,7 +59,7 @@ When changing startup resources, update both startup and shutdown paths. Redis i
 - `app/logger.py`: logging setup, including console and rotating-file behavior. Preserve useful operational logs and avoid logging tokens or user secrets.
 - `Dockerfile`: multi-stage uv setup, Alpine runtime image, dependency installation into `/opt/venv`, and the default bot command. Keep the lockfile-based install reproducible.
 - `docker-compose.yml`: local bot, migrator, PostgreSQL, and Redis orchestration. The bot waits for Redis to start, PostgreSQL to become healthy, and the migrator to complete successfully.
-- `alembic.ini`, `alembic/env.py`, and `alembic/versions/`: migration runner configuration and versioned schema changes. Use raw SQL in migrations when precise PostgreSQL DDL is needed.
+- `alembic.ini`, `alembic/env.py`, and `alembic/versions/`: migration runner configuration and versioned schema changes. Use raw SQL in migrations when precise PostgreSQL DDL is needed. Alembic's `alembic_version.version_num` column is hardcoded to `VARCHAR(32)`; since this repo's migration filenames double as `revision` ids, keep each `revision` string to 32 characters or fewer, or the `alembic upgrade` step fails on that revision with a `StringDataRightTruncationError` (this broke a production deploy once — see `0004_users_and_user_topics`, originally `0004_create_users_and_user_topics` at 33 characters).
 - `app/cli.py`: application CLI entry points, including `migrate`.
 - `app/db/models.py`: SQLAlchemy metadata and durable PostgreSQL models.
 - `app/db/session.py`: async SQLAlchemy engine and session factory helpers.
