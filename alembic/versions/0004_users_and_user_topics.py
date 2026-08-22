@@ -1,13 +1,13 @@
 """create users and user topics tables
 
-Revision ID: 0004_create_users_and_user_topics
+Revision ID: 0004_users_and_user_topics
 Revises: 0003_create_sync_outbox
 Create Date: 2026-08-21
 """
 
 from alembic import op
 
-revision = "0004_create_users_and_user_topics"
+revision = "0004_users_and_user_topics"
 down_revision = "0003_create_sync_outbox"
 branch_labels = None
 depends_on = None
