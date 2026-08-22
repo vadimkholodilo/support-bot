@@ -21,7 +21,7 @@ Specific limits are not specified in the documentation, but the community has sh
 </blockquote>
 
 <details>
-<summary><b>Available bot commands for admins (DEV_ID)</b></summary>
+<summary><b>Available bot commands for admins (DEV_USER_IDS)</b></summary>
 
 * `/newsletter` - Open the newsletter menu.
 
@@ -129,7 +129,7 @@ Here is a comprehensive reference guide for the environment variables used in th
 | Variable       | Type  | Description                                                   | Example               |
 |----------------|-------|---------------------------------------------------------------|-----------------------|
 | `BOT_TOKEN`    | `str` | Bot token, obtained from [@BotFather](https://t.me/BotFather) | `123456:qweRTY`       | 
-| `BOT_DEV_ID`   | `int` | User ID of the bot developer or admin                         | `123456789`           |
+| `BOT_DEV_USER_IDS` | `str` | Comma-separated user ID(s) of the bot developer(s)/admin(s)  | `123456789,987654321` |
 | `BOT_GROUP_ID` | `str` | Group ID where the bot operates                               | `-100123456789`       |
 | `BOT_EMOJI_ID` | `str` | The custom emoji ID for the group's topic.                    | `5417915203100613993` |
 | `REDIS_HOST`   | `str` | The hostname or IP address of the Redis server                | `redis`               |

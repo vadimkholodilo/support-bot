@@ -129,9 +129,9 @@ Middleware registration is in `app/bot/middlewares/__init__.py` and the implemen
 
 ## Behavioral Invariants
 
-- `BOT_TOKEN`, `BOT_DEV_ID`, `BOT_GROUP_ID`, `BOT_EMOJI_ID`, `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` are required configuration values.
+- `BOT_TOKEN`, `BOT_DEV_USER_IDS`, `BOT_GROUP_ID`, `BOT_EMOJI_ID`, `REDIS_HOST`, `REDIS_PORT`, and `REDIS_DB` are required configuration values.
 - `POSTGRES_DSN` is required by the bot and migrator. PostgreSQL container initialization separately uses `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` from Compose defaults or the environment.
-- `DEV_ID` gates developer-only operations such as `/newsletter` and receives operational error notifications.
+- `BOT_DEV_USER_IDS` is a comma-separated list of developer user IDs (a single ID is also valid); it gates developer-only operations such as `/newsletter` via `is_dev_user`/`IsDevUser` and receives operational error notifications.
 - User-to-topic mapping is persisted in Redis; deleting or changing indexes can orphan conversations.
 - Forum-topic creation is rate-limited by Telegram and may require retry handling.
 - Silent mode, ban state, language, and topic IDs are user-specific state and must survive normal restarts.

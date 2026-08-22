@@ -34,10 +34,11 @@ async def not_enough_rights_error(event: ErrorEvent, manager: Manager) -> None:
     """
     logging.exception(f'Update: {event.update}\nException: {event.exception}')
     print(event.exception.args)
-    await manager.bot.send_message(
-        manager.config.bot.DEV_ID,
-        NotEnoughRightsException.message,
-    )
+    for dev_user_id in manager.config.bot.DEV_USER_IDS:
+        await manager.bot.send_message(
+            dev_user_id,
+            NotEnoughRightsException.message,
+        )
 
 
 @router.errors(ExceptionTypeFilter(CreateForumTopicException))
@@ -51,10 +52,11 @@ async def create_forum_topic_error(event: ErrorEvent, manager: Manager) -> None:
     """
     logging.exception(f'Update: {event.update}\nException: {event.exception}')
 
-    await manager.bot.send_message(
-        manager.config.bot.DEV_ID,
-        CreateForumTopicException.message,
-    )
+    for dev_user_id in manager.config.bot.DEV_USER_IDS:
+        await manager.bot.send_message(
+            dev_user_id,
+            CreateForumTopicException.message,
+        )
 
 
 @router.errors()
@@ -76,11 +78,14 @@ async def telegram_api_error(event: ErrorEvent, manager: Manager) -> None:
     document_data = traceback.format_exc().encode()
     document_name = f'error_{event.update.update_id}.txt'
 
-    document = BufferedInputFile(document_data, filename=document_name)
     caption = f'{hbold(exc_name)}:\n{hcode(exc_text[:1024 - len(exc_name) - 2])}'
-    message = await manager.bot.send_document(manager.config.bot.DEV_ID, document, caption=caption)
+    json_chunks = [update_json[i:i + 4096] for i in range(0, len(update_json), 4096)]
 
-    # Send update_json in chunks
-    for text in [update_json[i:i + 4096] for i in range(0, len(update_json), 4096)]:
-        await asyncio.sleep(.1)
-        await message.reply(hcode(text))
+    for dev_user_id in manager.config.bot.DEV_USER_IDS:
+        document = BufferedInputFile(document_data, filename=document_name)
+        message = await manager.bot.send_document(dev_user_id, document, caption=caption)
+
+        # Send update_json in chunks
+        for text in json_chunks:
+            await asyncio.sleep(.1)
+            await message.reply(hcode(text))
