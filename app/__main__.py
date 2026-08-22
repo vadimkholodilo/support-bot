@@ -23,6 +23,7 @@ from .logger import setup_logger
 
 async def on_shutdown(
     apscheduler: AsyncIOScheduler,
+    outbox_scheduler: AsyncIOScheduler,
     dispatcher: Dispatcher,
     config: Config,
     bot: Bot,
@@ -32,12 +33,14 @@ async def on_shutdown(
     Shutdown event handler. This runs when the bot shuts down.
 
     :param apscheduler: AsyncIOScheduler: The apscheduler instance.
+    :param outbox_scheduler: AsyncIOScheduler: The outbox retry scheduler instance.
     :param dispatcher: Dispatcher: The bot dispatcher.
     :param config: Config: The config instance.
     :param bot: Bot: The bot instance.
     """
-    # Stop apscheduler
+    # Stop apschedulers
     apscheduler.shutdown()
+    outbox_scheduler.shutdown()
     await postgres_engine.dispose()
     # Delete commands and close storage when shutting down
     await commands.delete(bot, config)
@@ -48,6 +51,7 @@ async def on_shutdown(
 
 async def on_startup(
     apscheduler: AsyncIOScheduler,
+    outbox_scheduler: AsyncIOScheduler,
     config: Config,
     bot: Bot,
 ) -> None:
@@ -55,11 +59,13 @@ async def on_startup(
     Startup event handler. This runs when the bot starts up.
 
     :param apscheduler: AsyncIOScheduler: The apscheduler instance.
+    :param outbox_scheduler: AsyncIOScheduler: The outbox retry scheduler instance.
     :param config: Config: The config instance.
     :param bot: Bot: The bot instance.
     """
-    # Start apscheduler
+    # Start apschedulers
     apscheduler.start()
+    outbox_scheduler.start()
     # Setup commands when starting up
     await commands.setup(bot, config)
 
@@ -75,7 +81,7 @@ async def main() -> None:
     postgres_engine = create_async_engine(config.postgres.DSN, pool_pre_ping=True)
     postgres_session_factory: async_sessionmaker = create_session_factory(postgres_engine)
 
-    # Initialize apscheduler
+    # Initialize apscheduler used for newsletters
     job_store = RedisJobStore(
         host=config.redis.HOST,
         port=config.redis.PORT,
@@ -84,7 +90,21 @@ async def main() -> None:
     apscheduler = AsyncIOScheduler(
         jobstores={"default": job_store},
     )
-    apscheduler.add_job(
+
+    # Initialize a separate apscheduler for the outbox retry job so it never
+    # shows up in aiogram_newsletter's job listing, which assumes every job
+    # in the scheduler it's given uses a DateTrigger.
+    outbox_job_store = RedisJobStore(
+        host=config.redis.HOST,
+        port=config.redis.PORT,
+        db=config.redis.DB,
+        jobs_key="apscheduler.outbox_jobs",
+        run_times_key="apscheduler.outbox_run_times",
+    )
+    outbox_scheduler = AsyncIOScheduler(
+        jobstores={"default": outbox_job_store},
+    )
+    outbox_scheduler.add_job(
         run_sync_outbox_retry,
         "interval",
         seconds=30,
@@ -109,6 +129,7 @@ async def main() -> None:
     )
     dp = Dispatcher(
         apscheduler=apscheduler,
+        outbox_scheduler=outbox_scheduler,
         storage=storage,
         config=config,
         bot=bot,
