@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.filters import Command, MagicData
+from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram_newsletter.manager import ANManager
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.bot.handlers.private.windows import Window
 from app.bot.manager import Manager
 from app.bot.utils.create_forum_topic import get_or_create_forum_topic
+from app.bot.utils.dev import IsDevUser
 from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
 
@@ -86,7 +87,7 @@ async def handler(message: Message, manager: Manager) -> None:
 
 @router.message(
     Command("newsletter"),
-    MagicData(F.event_from_user.id == F.config.bot.DEV_ID),  # type: ignore
+    IsDevUser(),
 )
 async def handler(
         message: Message,

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 from environs import Env
 
@@ -10,12 +11,12 @@ class BotConfig:
 
     Attributes:
     - TOKEN (str): The bot token.
-    - DEV_ID (int): The developer's user ID.
+    - DEV_USER_IDS (List[int]): The developers' user IDs.
     - GROUP_ID (int): The group chat ID.
     - BOT_EMOJI_ID (str): The custom emoji ID for the group's topic.
     """
     TOKEN: str
-    DEV_ID: int
+    DEV_USER_IDS: List[int]
     GROUP_ID: int
     BOT_EMOJI_ID: str
 
@@ -74,7 +75,7 @@ def load_config() -> Config:
     return Config(
         bot=BotConfig(
             TOKEN=env.str("BOT_TOKEN"),
-            DEV_ID=env.int("BOT_DEV_ID"),
+            DEV_USER_IDS=env.list("BOT_DEV_USER_IDS", subcast=int),
             GROUP_ID=env.int("BOT_GROUP_ID"),
             BOT_EMOJI_ID=env.str("BOT_EMOJI_ID"),
         ),

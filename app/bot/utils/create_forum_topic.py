@@ -41,7 +41,8 @@ async def get_or_create_forum_topic(
                     )
 
         except Exception as e:
-            await bot.send_message(config.bot.DEV_ID, str(e))
+            for dev_user_id in config.bot.DEV_USER_IDS:
+                await bot.send_message(dev_user_id, str(e))
             logging.exception(e)
 
     return user_data.message_thread_id
