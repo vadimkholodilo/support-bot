@@ -11,6 +11,7 @@ dependencies = [
     "cachetools>=7.1.7",
     "environs>=15.1.0",
     "greenlet>=3.0",
+    "openfeature-sdk>=0.10.0",
     "pydantic>=2.13.4",
     "redis>=8.1.0",
     "setuptools<82",

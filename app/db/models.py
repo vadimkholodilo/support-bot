@@ -85,6 +85,19 @@ class User(Base):
     )
 
 
+class UserSource(Base):
+    __tablename__ = "user_sources"
+
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    source: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 class UserTopic(Base):
     __tablename__ = "user_topics"
 

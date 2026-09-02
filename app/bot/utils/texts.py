@@ -82,6 +82,8 @@ class TextMessage(Text):
                     "User information"
                     "<blockquote>Receive a message with basic information about the user.</blockquote>"
                 ),
+                "user_started_bot_source": "\n\n<b>Source:</b> {source}",
+                "user_information_source": "\n<b>Source:</b>\n- {source}",
                 "user_restarted_bot": f"User {hbold('{name}')} restarted the bot!",
                 "user_stopped_bot": f"User {hbold('{name}')} stopped the bot!",
                 "user_blocked": "<b>User blocked!</b> Messages from the user are not accepted.",
@@ -139,6 +141,8 @@ class TextMessage(Text):
                     "Информация о пользователе"
                     "<blockquote>Получить сообщение с основной информацией о пользователе.</blockquote>"
                 ),
+                "user_started_bot_source": "\n\n<b>Источник:</b> {source}",
+                "user_information_source": "\n<b>Источник:</b>\n- {source}",
                 "user_restarted_bot": f"Пользователь {hbold('{name}')} перезапустил(а) бота!",
                 "user_stopped_bot": f"Пользователь {hbold('{name}')} остановил(а) бота!",
                 "user_blocked": "<b>Пользователь заблокирован!</b> Сообщения от пользователя не принимаются.",

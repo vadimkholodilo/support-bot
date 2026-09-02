@@ -405,6 +405,15 @@ wheels = [
 ]
 
 [[package]]
+name = "openfeature-sdk"
+version = "0.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/30/cfc684b7d8314398d476ae8ed515c10db99c4d7f950989db464b4ded12ce/openfeature_sdk-0.10.0.tar.gz", hash = "sha256:938c2540bdea4da3b01ef507517ee636f223a35abaaca845c5587e594151b052", size = 33516, upload-time = "2026-06-01T19:45:35.136Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/da/44/8a4f5225e930ff0d999fd43f5d743a4babeb6c7e76dddc00f0e118878ef3/openfeature_sdk-0.10.0-py3-none-any.whl", hash = "sha256:75497ea75d73f684eef509a25f79ad6386368862e050af80ab70a44ae49b33e4", size = 38941, upload-time = "2026-06-01T19:45:33.011Z" },
+]
+
+[[package]]
 name = "propcache"
 version = "0.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -581,6 +590,7 @@ dependencies = [
     { name = "cachetools" },
     { name = "environs" },
     { name = "greenlet" },
+    { name = "openfeature-sdk" },
     { name = "pydantic" },
     { name = "redis" },
     { name = "setuptools" },
@@ -596,6 +606,7 @@ requires-dist = [
     { name = "cachetools", specifier = ">=7.1.7" },
     { name = "environs", specifier = ">=15.1.0" },
     { name = "greenlet", specifier = ">=3.0" },
+    { name = "openfeature-sdk", specifier = ">=0.10.0" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "redis", specifier = ">=8.1.0" },
     { name = "setuptools", specifier = "<82" },

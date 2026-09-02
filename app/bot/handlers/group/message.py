@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from html import escape
 from typing import Optional
 
 from aiogram import Router, F
@@ -16,8 +17,10 @@ from app.bot.utils.admins import (
     message_mentions_admin,
 )
 from app.bot.utils.redis import RedisStorage
+from app.bot.utils.source import SourceService
 from app.db.message_events import insert_message_event
 from app.db.outbox import enqueue_sync_event
+from app.feature_flags import SOURCE_TRACKING, is_enabled
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
@@ -31,7 +34,12 @@ router.message.filter(
 
 
 @router.message(F.forum_topic_created)
-async def handler(message: Message, manager: Manager, redis: RedisStorage) -> None:
+async def handler(
+    message: Message,
+    manager: Manager,
+    redis: RedisStorage,
+    postgres_session_factory: async_sessionmaker[AsyncSession],
+) -> None:
     await asyncio.sleep(3)
     user_data = await redis.get_by_message_thread_id(message.message_thread_id)
     if not user_data: return None  # noqa
@@ -40,11 +48,24 @@ async def handler(message: Message, manager: Manager, redis: RedisStorage) -> No
     url = f"https://t.me/{user_data.username[1:]}" if user_data.username != "-" else f"tg://user?id={user_data.id}"
 
     # Get the appropriate text based on the user's state
-    text = manager.text_message.get("user_started_bot")
+    text = manager.text_message.get("user_started_bot").format(name=hlink(user_data.full_name, url))
+
+    if is_enabled(SOURCE_TRACKING):
+        try:
+            source = await SourceService(postgres_session_factory).get(user_data.id)
+        except Exception:
+            logger.exception(
+                "Failed to load user source",
+                extra={"telegram_user_id": user_data.id},
+            )
+        else:
+            text += manager.text_message.get("user_started_bot_source").format(
+                source=escape(source)
+            )
 
     message = await message.bot.send_message(
         chat_id=manager.config.bot.GROUP_ID,
-        text=text.format(name=hlink(user_data.full_name, url)),
+        text=text,
         message_thread_id=user_data.message_thread_id
     )
 
