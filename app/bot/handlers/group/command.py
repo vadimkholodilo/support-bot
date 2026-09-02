@@ -1,13 +1,18 @@
+import logging
 from contextlib import suppress
+from html import escape
 
 from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, MagicData
 from aiogram.types import Message
 from aiogram.utils.markdown import hcode, hbold
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.bot.manager import Manager
 from app.bot.utils.redis import RedisStorage
+from app.bot.utils.source import SourceService
+from app.feature_flags import SOURCE_TRACKING, is_enabled
 
 router_id = Router()
 router_id.message.filter(
@@ -78,7 +83,12 @@ async def handler(message: Message, manager: Manager, redis: RedisStorage) -> No
 
 
 @router.message(Command("information"))
-async def handler(message: Message, manager: Manager, redis: RedisStorage) -> None:
+async def handler(
+        message: Message,
+        manager: Manager,
+        redis: RedisStorage,
+        postgres_session_factory: async_sessionmaker[AsyncSession],
+) -> None:
     """
     Sends user information in response to the /information command.
 
@@ -93,6 +103,19 @@ async def handler(message: Message, manager: Manager, redis: RedisStorage) -> No
     format_data = user_data.to_dict()
     format_data["full_name"] = hbold(format_data["full_name"])
     text = manager.text_message.get("user_information")
+
+    if is_enabled(SOURCE_TRACKING):
+        try:
+            source = await SourceService(postgres_session_factory).get(user_data.id)
+        except Exception:
+            logging.exception(
+                "Failed to load user source",
+                extra={"telegram_user_id": user_data.id},
+            )
+        else:
+            text += manager.text_message.get("user_information_source")
+            format_data["source"] = escape(source)
+
     # Reply with formatted user information
     await message.reply(text.format_map(format_data))
 

@@ -1,5 +1,7 @@
+import logging
+
 from aiogram import Router, F
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 from aiogram_newsletter.manager import ANManager
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -10,6 +12,8 @@ from app.bot.utils.create_forum_topic import get_or_create_forum_topic
 from app.bot.utils.dev import IsDevUser
 from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
+from app.bot.utils.source import SourceService
+from app.feature_flags import SOURCE_TRACKING, is_enabled
 
 router = Router()
 router.message.filter(F.chat.type == "private")
@@ -18,6 +22,7 @@ router.message.filter(F.chat.type == "private")
 @router.message(Command("start"))
 async def handler(
         message: Message,
+        command: CommandObject,
         manager: Manager,
         redis: RedisStorage,
         user_data: UserData,
@@ -30,6 +35,7 @@ async def handler(
     Otherwise, prompts the user to select a language.
 
     :param message: Message object.
+    :param command: CommandObject with the deep-link payload (``/start src_...``).
     :param manager: Manager object.
     :param redis: RedisStorage object.
     :param user_data: UserData object.
@@ -40,6 +46,18 @@ async def handler(
     else:
         await Window.select_language(manager)
     await manager.delete_message(message)
+
+    # Persist where the user came from before the topic-created handler reads it.
+    if is_enabled(SOURCE_TRACKING):
+        try:
+            await SourceService(postgres_session_factory).remember(
+                message.from_user.id, command.args
+            )
+        except Exception:
+            logging.exception(
+                "Failed to persist user source",
+                extra={"telegram_user_id": message.from_user.id},
+            )
 
     # Create the forum topic
     await get_or_create_forum_topic(

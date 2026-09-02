@@ -18,6 +18,7 @@ from .cli import migrate
 from .config import load_config, Config
 from .db import create_async_engine, create_session_factory
 from .db.outbox import run_sync_outbox_retry
+from .feature_flags import setup_feature_flags
 from .logger import setup_logger
 
 
@@ -76,6 +77,9 @@ async def main() -> None:
     """
     # Load config
     config = load_config()
+
+    # Register the environment-variable feature-flag provider
+    setup_feature_flags()
 
     # Initialize PostgreSQL resources
     postgres_engine = create_async_engine(config.postgres.DSN, pool_pre_ping=True)
