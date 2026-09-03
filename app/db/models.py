@@ -1,6 +1,18 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Index, Integer, Text, UniqueConstraint, func, text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Index,
+    Integer,
+    SmallInteger,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -90,6 +102,25 @@ class UserSource(Base):
 
     telegram_user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     source: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class WelcomeMessage(Base):
+    __tablename__ = "welcome_message"
+    __table_args__ = (
+        CheckConstraint("id = 1", name="welcome_message_singleton"),
+    )
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, default=1)
+    source_chat_id: Mapped[int] = mapped_column(BigInteger)
+    source_message_id: Mapped[int] = mapped_column(BigInteger)
+    content_type: Mapped[str | None] = mapped_column(Text)
+    updated_by: Mapped[int | None] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

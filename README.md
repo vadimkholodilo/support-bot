@@ -28,6 +28,15 @@ Specific limits are not specified in the documentation, but the community has sh
   Use this command to initiate a newsletter for users.
   **Note**: This command works only in private chats.
 
+* `/welcome` - Set the welcome message.
+
+  Enter capture mode and send any message (text, photo, video, video note, ...)
+  to use it as the greeting shown on `/start`. The message is stored by
+  reference and copied to each user; send `/reset` to restore the default text
+  or `/cancel` to abort. The stored message must not be deleted from your chat
+  with the bot, otherwise the bot falls back to the default text.
+  **Note**: This command works only in private chats.
+
 </details>
 
 <details>

@@ -61,7 +61,7 @@ When changing startup resources, update both startup and shutdown paths. Redis i
 - `docker-compose.yml`: local bot, migrator, PostgreSQL, and Redis orchestration. The bot waits for Redis to start, PostgreSQL to become healthy, and the migrator to complete successfully.
 - `alembic.ini`, `alembic/env.py`, and `alembic/versions/`: migration runner configuration and versioned schema changes. Use raw SQL in migrations when precise PostgreSQL DDL is needed. Alembic's `alembic_version.version_num` column is hardcoded to `VARCHAR(32)`; since this repo's migration filenames double as `revision` ids, keep each `revision` string to 32 characters or fewer, or the `alembic upgrade` step fails on that revision with a `StringDataRightTruncationError` (this broke a production deploy once — see `0004_users_and_user_topics`, originally `0004_create_users_and_user_topics` at 33 characters).
 - `app/cli.py`: application CLI entry points, including `migrate`.
-- `app/db/models.py`: SQLAlchemy metadata and durable PostgreSQL models.
+- `app/db/models.py`: SQLAlchemy metadata and durable PostgreSQL models, including the single-row `welcome_message` table (source-of-truth for the custom greeting; `app/db/welcome.py` holds its helpers).
 - `app/db/session.py`: async SQLAlchemy engine and session factory helpers.
 
 ### Bot orchestration
@@ -76,6 +76,7 @@ When changing startup resources, update both startup and shutdown paths. Redis i
 Files under `app/bot/handlers/private/` handle direct user interactions:
 
 - `command.py`: `/start`, language selection entry points, `/source`, and developer-only `/newsletter`.
+- `welcome.py`: developer-only `/welcome` FSM flow that captures any message as the greeting shown on `/start`; storage/fallback lives in `app/bot/utils/welcome.py` (`WelcomeService`).
 - `message.py`: incoming text/media, edited messages, forwarding to the user topic, and album handling.
 - `callback_query.py`: language-selection callbacks and related menu transitions.
 - `my_chat_member.py`: tracks whether a user joins, blocks, or unblocks the bot.
@@ -108,7 +109,7 @@ Middleware registration is in `app/bot/middlewares/__init__.py` and the implemen
 
 - `app/bot/types/album.py`: `Album` aggregates Telegram media-group messages and converts them to aiogram input media or sends them as a group.
 - `app/bot/utils/redis/models.py`: `UserData` is the serialized user record, including the forum thread ID, language, ban state, silent-mode state, FSM state, and timestamps.
-- `app/bot/utils/redis/redis.py`: `RedisStorage` manages user hashes and reverse indexes by forum thread. Extend this abstraction for new Redis operations rather than scattering raw Redis commands through handlers.
+- `app/bot/utils/redis/redis.py`: `RedisStorage` manages user hashes and reverse indexes by forum thread, plus the `welcome_message` read-through cache key. Extend this abstraction for new Redis operations rather than scattering raw Redis commands through handlers.
 - `app/bot/utils/create_forum_topic.py`: creates or retrieves topics, handles Telegram retry limits, updates Redis indexes, and raises domain exceptions.
 - `app/bot/utils/exceptions.py`: domain exception types consumed by `handlers/errors.py`.
 - `app/bot/utils/texts.py`: `SUPPORTED_LANGUAGES`, localized `TextMessage.data`, and text lookup. Add a language in both the language map and every required localized text entry.

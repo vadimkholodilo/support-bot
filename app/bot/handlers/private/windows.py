@@ -9,6 +9,7 @@ from aiogram.types import InlineKeyboardMarkup as Markup
 from aiogram.types import InlineKeyboardButton as Button
 
 from app.bot.utils.texts import SUPPORTED_LANGUAGES
+from app.bot.utils.welcome import WelcomeService
 
 
 def select_language_markup() -> Markup:
@@ -51,10 +52,9 @@ class Window:
         :param manager: Manager object.
         :return: None
         """
-        text = manager.text_message.get("main_menu")
-        with suppress(IndexError, KeyError):
-            text = text.format(full_name=hbold(manager.user.full_name))
-        await manager.send_message(text)
+        redis = manager.middleware_data["redis"]
+        session_factory = manager.middleware_data["postgres_session_factory"]
+        await WelcomeService(redis, session_factory).render(manager)
         await manager.state.set_state(None)
 
     @staticmethod

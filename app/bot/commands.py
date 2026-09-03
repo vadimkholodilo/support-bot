@@ -55,10 +55,16 @@ async def setup(bot: Bot, config: Config) -> None:
     admin_commands = {
         "en":
             commands["en"].copy() +
-            [BotCommand(command="newsletter", description="Newsletter menu")],
+            [
+                BotCommand(command="newsletter", description="Newsletter menu"),
+                BotCommand(command="welcome", description="Set the welcome message"),
+            ],
         "ru":
             commands["ru"].copy() +
-            [BotCommand(command="newsletter", description="Меню рассылки")],
+            [
+                BotCommand(command="newsletter", description="Меню рассылки"),
+                BotCommand(command="welcome", description="Изменить приветственное сообщение"),
+            ],
     }
 
     for dev_user_id in config.bot.DEV_USER_IDS:
