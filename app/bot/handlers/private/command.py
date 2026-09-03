@@ -35,23 +35,12 @@ async def handler(
     Otherwise, prompts the user to select a language.
 
     :param message: Message object.
-    :param command: CommandObject with the deep-link payload (``/start src_...``).
+    :param command: CommandObject with the deep-link payload (``/start <source>``).
     :param manager: Manager object.
     :param redis: RedisStorage object.
     :param user_data: UserData object.
     :return: None
     """
-    logging.info(
-        "/start received: user_id=%s message_text=%r command=%r args=%r "
-        "mention=%r source_tracking_enabled=%s",
-        message.from_user.id,
-        message.text,
-        command.command,
-        command.args,
-        command.mention,
-        is_enabled(SOURCE_TRACKING),
-    )
-
     if user_data.language_code:
         await Window.main_menu(manager)
     else:
@@ -65,7 +54,7 @@ async def handler(
                 message.from_user.id, command.args
             )
             logging.info(
-                "/start source persisted: user_id=%s raw_args=%r resolved=%r",
+                "/start source persisted: user_id=%s payload=%r resolved=%r",
                 message.from_user.id,
                 command.args,
                 resolved_source,
