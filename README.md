@@ -28,6 +28,15 @@ Specific limits are not specified in the documentation, but the community has sh
   Use this command to initiate a newsletter for users.
   **Note**: This command works only in private chats.
 
+* `/welcome` - Set the welcome message.
+
+  Enter capture mode and send any message (text, photo, video, video note, ...)
+  to use it as the greeting shown on `/start`. The message is stored by
+  reference and copied to each user; send `/reset` to restore the default text
+  or `/cancel` to abort. The stored message must not be deleted from your chat
+  with the bot, otherwise the bot falls back to the default text.
+  **Note**: This command works only in private chats.
+
 </details>
 
 <details>
@@ -132,7 +141,7 @@ Here is a comprehensive reference guide for the environment variables used in th
 | `BOT_DEV_USER_IDS` | `str` | Comma-separated user ID(s) of the bot developer(s)/admin(s)  | `123456789,987654321` |
 | `BOT_GROUP_ID` | `str` | Group ID where the bot operates                               | `-100123456789`       |
 | `BOT_EMOJI_ID` | `str` | The custom emoji ID for the group's topic.                    | `5417915203100613993` |
-| `BOT_FF_SOURCE_TRACKING` | `bool` | Feature flag: track user acquisition source from the `/start` deep-link `src_` payload (e.g. `t.me/<bot>?start=src_twitter`). Stored in PostgreSQL and shown in the topic-created message and by the `/information` command. Defaults to off. | `false` |
+| `BOT_FF_SOURCE_TRACKING` | `bool` | Feature flag: track user acquisition source from the `/start` deep-link payload (e.g. `t.me/<bot>?start=twitter` -> `twitter`). Stored in PostgreSQL and shown in the topic-created message and by the `/information` command. Defaults to off. | `false` |
 | `REDIS_HOST`   | `str` | The hostname or IP address of the Redis server                | `redis`               |
 | `REDIS_PORT`   | `int` | The port number on which the Redis server is running          | `6379`                |
 | `REDIS_DB`     | `int` | The Redis database number                                     | `1`                   |

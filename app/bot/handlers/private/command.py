@@ -35,7 +35,7 @@ async def handler(
     Otherwise, prompts the user to select a language.
 
     :param message: Message object.
-    :param command: CommandObject with the deep-link payload (``/start src_...``).
+    :param command: CommandObject with the deep-link payload (``/start <source>``).
     :param manager: Manager object.
     :param redis: RedisStorage object.
     :param user_data: UserData object.
@@ -50,8 +50,14 @@ async def handler(
     # Persist where the user came from before the topic-created handler reads it.
     if is_enabled(SOURCE_TRACKING):
         try:
-            await SourceService(postgres_session_factory).remember(
+            resolved_source = await SourceService(postgres_session_factory).remember(
                 message.from_user.id, command.args
+            )
+            logging.info(
+                "/start source persisted: user_id=%s payload=%r resolved=%r",
+                message.from_user.id,
+                command.args,
+                resolved_source,
             )
         except Exception:
             logging.exception(

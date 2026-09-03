@@ -102,6 +102,32 @@ class Manager:
         await self.delete_previous_message()
         await self.state.update_data(message_id=message.message_id)
 
+    async def send_copied_message(
+            self,
+            from_chat_id: int,
+            message_id: int,
+            reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+    ) -> None:
+        """
+        Copy an existing message into the current user's chat.
+
+        Mirrors :meth:`send_message` bookkeeping: the previous window message is
+        removed and the new message id is stored in the FSM context.
+
+        :param from_chat_id: Chat that holds the source message.
+        :param message_id: Identifier of the source message.
+        :param reply_markup: The reply markup.
+        :return: None.
+        """
+        message_id_ = await self.bot.copy_message(
+            chat_id=self.user.id,
+            from_chat_id=from_chat_id,
+            message_id=message_id,
+            reply_markup=reply_markup,
+        )
+        await self.delete_previous_message()
+        await self.state.update_data(message_id=message_id_.message_id)
+
     @staticmethod
     async def delete_message(message: Message) -> None:
         """

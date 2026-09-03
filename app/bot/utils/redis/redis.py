@@ -9,6 +9,7 @@ class RedisStorage:
     """Class for managing user data storage using Redis."""
 
     NAME = "users"
+    WELCOME_KEY = "welcome_message"
 
     def __init__(self, redis: Redis) -> None:
         """
@@ -95,6 +96,30 @@ class RedisStorage:
         json_data = json.dumps(data.to_dict())
         await self._set(self.NAME, id_, json_data)
         await self._update_index(data.message_thread_id, id_)
+
+    async def get_welcome_message(self) -> dict | None:
+        """
+        Retrieves the cached welcome message payload.
+
+        :return: The decoded payload or None if it is not cached.
+        """
+        async with self.redis.client() as client:
+            data = await client.get(self.WELCOME_KEY)
+        return json.loads(data) if data is not None else None
+
+    async def set_welcome_message(self, data: dict) -> None:
+        """
+        Caches the welcome message payload.
+
+        :param data: The payload to cache.
+        """
+        async with self.redis.client() as client:
+            await client.set(self.WELCOME_KEY, json.dumps(data))
+
+    async def delete_welcome_message(self) -> None:
+        """Removes the cached welcome message payload."""
+        async with self.redis.client() as client:
+            await client.delete(self.WELCOME_KEY)
 
     async def get_all_users_ids(self) -> list[int]:
         """

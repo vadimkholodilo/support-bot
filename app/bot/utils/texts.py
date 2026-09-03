@@ -114,6 +114,15 @@ class TextMessage(Text):
                 "message_blocked_admin_mention": (
                     "<b>Not forwarded to the user!</b> The message mentions an admin."
                 ),
+                "welcome_prompt": (
+                    "<b>Send the new welcome message.</b> It can be any message "
+                    "(text, photo, video, video note, ...) and will be copied to "
+                    "every user on /start.\n\n"
+                    "Send /reset to restore the default text, or /cancel to abort."
+                ),
+                "welcome_saved": "<b>Welcome message updated!</b>",
+                "welcome_reset": "<b>Welcome message reset</b> to the default text.",
+                "welcome_cancelled": "<b>Cancelled.</b> The welcome message was not changed.",
             },
             "ru": {
                 "select_language": f"👋 <b>Привет</b>, {hbold('{full_name}')}!\n\nВыберите язык:",
@@ -173,5 +182,14 @@ class TextMessage(Text):
                 "message_blocked_admin_mention": (
                     "<b>Не переслано пользователю!</b> Сообщение содержит упоминание администратора."
                 ),
+                "welcome_prompt": (
+                    "<b>Отправьте новое приветственное сообщение.</b> Это может быть "
+                    "любое сообщение (текст, фото, видео, видеосообщение, ...); оно "
+                    "будет копироваться каждому пользователю по команде /start.\n\n"
+                    "Отправьте /reset, чтобы вернуть текст по умолчанию, или /cancel для отмены."
+                ),
+                "welcome_saved": "<b>Приветственное сообщение обновлено!</b>",
+                "welcome_reset": "<b>Приветственное сообщение сброшено</b> к тексту по умолчанию.",
+                "welcome_cancelled": "<b>Отменено.</b> Приветственное сообщение не изменено.",
             },
         }

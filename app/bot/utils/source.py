@@ -13,11 +13,11 @@ from app.db.sources import (
 class SourceService:
     """Resolves and persists the acquisition source for a Telegram user.
 
-    The source is derived from the ``/start`` deep-link payload using the
-    ``src_`` prefix convention (``t.me/<bot>?start=src_twitter`` -> ``twitter``)
-    and stored durably in PostgreSQL only. Missing or empty payloads resolve to
-    ``"Unknown"``. Reuse this service anywhere the source is needed instead of
-    touching the ``user_sources`` table directly.
+    The whole ``/start`` deep-link payload is the source
+    (``t.me/<bot>?start=twitter`` -> ``twitter``); it is stored durably in
+    PostgreSQL only. Missing or empty payloads resolve to ``"Unknown"``.
+    Reuse this service anywhere the source is needed instead of touching the
+    ``user_sources`` table directly.
     """
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
