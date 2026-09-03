@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -21,14 +23,24 @@ def parse_source(payload: str | None) -> str:
     follow the ``src_`` prefix convention.
     """
     if not payload:
+        logging.info("parse_source: empty payload=%r -> %s", payload, UNKNOWN_SOURCE)
         return UNKNOWN_SOURCE
-    payload = payload.strip()
-    if not payload.startswith(SOURCE_PREFIX):
+    stripped = payload.strip()
+    if not stripped.startswith(SOURCE_PREFIX):
+        logging.info(
+            "parse_source: payload=%r missing %r prefix -> %s",
+            payload,
+            SOURCE_PREFIX,
+            UNKNOWN_SOURCE,
+        )
         return UNKNOWN_SOURCE
-    value = payload[len(SOURCE_PREFIX):].strip()
+    value = stripped[len(SOURCE_PREFIX):].strip()
     if not value:
+        logging.info("parse_source: payload=%r has empty source -> %s", payload, UNKNOWN_SOURCE)
         return UNKNOWN_SOURCE
-    return value[:MAX_SOURCE_LENGTH]
+    resolved = value[:MAX_SOURCE_LENGTH]
+    logging.info("parse_source: payload=%r -> %r", payload, resolved)
+    return resolved
 
 
 async def save_user_source(
