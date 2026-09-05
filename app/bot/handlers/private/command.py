@@ -98,20 +98,6 @@ async def handler(message: Message, manager: Manager, user_data: UserData) -> No
     await manager.delete_message(message)
 
 
-@router.message(Command("source"))
-async def handler(message: Message, manager: Manager) -> None:
-    """
-    Handles the /source command.
-
-    :param message: Message object.
-    :param manager: Manager object.
-    :return: None
-    """
-    text = manager.text_message.get("source")
-    await manager.send_message(text)
-    await manager.delete_message(message)
-
-
 @router.message(
     Command("newsletter"),
     IsDevUser(),
