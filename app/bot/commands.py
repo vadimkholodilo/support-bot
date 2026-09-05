@@ -7,7 +7,7 @@ from aiogram.types import (
     BotCommandScopeAllPrivateChats,
 )
 
-from app.bot.utils.texts import SUPPORTED_LANGUAGES
+from app.bot.utils.language import is_language_selection_enabled
 from app.config import Config
 
 
@@ -30,8 +30,8 @@ async def setup(bot: Bot, config: Config) -> None:
         ]
     }
 
-    if len(SUPPORTED_LANGUAGES) > 1:
-        # If there are more than one supported language, add commands for changing the language
+    if is_language_selection_enabled(config):
+        # If language selection is enabled, add commands for changing the language
         commands["en"].append(
             BotCommand(command="language", description="Change language"),
         )

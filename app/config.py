@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from environs import Env
 
@@ -14,11 +14,14 @@ class BotConfig:
     - DEV_USER_IDS (List[int]): The developers' user IDs.
     - GROUP_ID (int): The group chat ID.
     - BOT_EMOJI_ID (str): The custom emoji ID for the group's topic.
+    - DEFAULT_LANGUAGE_CODE (Optional[str]): When set, language selection is disabled and every
+      user is pinned to this language.
     """
     TOKEN: str
     DEV_USER_IDS: List[int]
     GROUP_ID: int
     BOT_EMOJI_ID: str
+    DEFAULT_LANGUAGE_CODE: Optional[str]
 
 
 @dataclass
@@ -69,8 +72,19 @@ def load_config() -> Config:
 
     :return: The Config object with loaded configuration.
     """
+    # Imported lazily to avoid a circular import: app.bot.utils (imported for
+    # SUPPORTED_LANGUAGES) pulls in modules that import Config from this file.
+    from app.bot.utils.texts import SUPPORTED_LANGUAGES
+
     env = Env()
     env.read_env()
+
+    default_language_code = env.str("BOT_DEFAULT_LANGUAGE_CODE", None)
+    if default_language_code and default_language_code not in SUPPORTED_LANGUAGES:
+        raise ValueError(
+            f"BOT_DEFAULT_LANGUAGE_CODE={default_language_code!r} is not one of "
+            f"the supported languages: {sorted(SUPPORTED_LANGUAGES.keys())}"
+        )
 
     return Config(
         bot=BotConfig(
@@ -78,6 +92,7 @@ def load_config() -> Config:
             DEV_USER_IDS=env.list("BOT_DEV_USER_IDS", subcast=int),
             GROUP_ID=env.int("BOT_GROUP_ID"),
             BOT_EMOJI_ID=env.str("BOT_EMOJI_ID"),
+            DEFAULT_LANGUAGE_CODE=default_language_code,
         ),
         redis=RedisConfig(
             HOST=env.str("REDIS_HOST"),

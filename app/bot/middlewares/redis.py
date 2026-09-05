@@ -5,10 +5,11 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User, Chat
 from redis.asyncio import Redis
 
+from app.bot.utils.language import resolve_forced_language_code
 from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
-from app.bot.utils.texts import SUPPORTED_LANGUAGES
 from app.db.state import mirror_user_state
+from app.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +68,11 @@ class RedisMiddleware(BaseMiddleware):
                 user_data.full_name = user.full_name
                 user_data.username = f"@{user.username}" if user.username else "-"
 
-            if len(SUPPORTED_LANGUAGES.keys()) == 1:
-                # If only one language is supported, set user language_code to the first language
-                user_data.language_code = list(SUPPORTED_LANGUAGES.keys())[0]
+            config: Config = data.get("config")
+            forced_language_code = resolve_forced_language_code(config)
+            if forced_language_code is not None:
+                # Language selection is disabled: pin every user to the forced language
+                user_data.language_code = forced_language_code
 
             # Update user data in Redis
             await redis.update_user(user.id, user_data)
