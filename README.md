@@ -142,6 +142,7 @@ Here is a comprehensive reference guide for the environment variables used in th
 | `BOT_GROUP_ID` | `str` | Group ID where the bot operates                               | `-100123456789`       |
 | `BOT_EMOJI_ID` | `str` | The custom emoji ID for the group's topic.                    | `5417915203100613993` |
 | `BOT_FF_SOURCE_TRACKING` | `bool` | Feature flag: track user acquisition source from the `/start` deep-link payload (e.g. `t.me/<bot>?start=twitter` -> `twitter`). Stored in PostgreSQL and shown in the topic-created message and by the `/information` command. Defaults to off. | `false` |
+| `BOT_DEFAULT_LANGUAGE_CODE` | `str` | Optional. When set, disables language selection entirely: no language prompt on `/start`, no `/language` command, and every user is pinned to this language. Must be one of the codes in [SUPPORTED_LANGUAGES](app/bot/utils/texts.py#L4). Omit to let users pick their language. | `en` |
 | `REDIS_HOST`   | `str` | The hostname or IP address of the Redis server                | `redis`               |
 | `REDIS_PORT`   | `int` | The port number on which the Redis server is running          | `6379`                |
 | `REDIS_DB`     | `int` | The Redis database number                                     | `1`                   |

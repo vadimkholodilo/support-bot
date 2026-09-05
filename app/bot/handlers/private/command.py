@@ -10,6 +10,7 @@ from app.bot.handlers.private.windows import Window
 from app.bot.manager import Manager
 from app.bot.utils.create_forum_topic import get_or_create_forum_topic
 from app.bot.utils.dev import IsDevUser
+from app.bot.utils.language import is_language_selection_enabled
 from app.bot.utils.redis import RedisStorage
 from app.bot.utils.redis.models import UserData
 from app.bot.utils.source import SourceService
@@ -88,7 +89,9 @@ async def handler(message: Message, manager: Manager, user_data: UserData) -> No
     :param user_data: UserData object.
     :return: None
     """
-    if user_data.language_code:
+    if not is_language_selection_enabled(manager.config):
+        await Window.main_menu(manager)
+    elif user_data.language_code:
         await Window.change_language(manager)
     else:
         await Window.select_language(manager)
