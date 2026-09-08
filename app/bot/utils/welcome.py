@@ -100,6 +100,7 @@ class WelcomeService:
             await manager.send_copied_message(
                 from_chat_id=stored.source_chat_id,
                 message_id=stored.source_message_id,
+                register_window=False,
             )
         except TelegramBadRequest:
             logger.warning(
@@ -116,4 +117,4 @@ class WelcomeService:
         text = manager.text_message.get("main_menu")
         with suppress(IndexError, KeyError):
             text = text.format(full_name=hbold(manager.user.full_name))
-        await manager.send_message(text)
+        await manager.send_message(text, register_window=False)

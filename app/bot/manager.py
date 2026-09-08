@@ -24,6 +24,8 @@ MESSAGE_EDIT_ERRORS = [
     "message can't be edited",
     "message is not modified",
     "message to edit not found",
+    # The stored window turned out to be a non-text message; nothing to blank.
+    "there is no text in the message to edit",
 ]
 MESSAGE_DELETE_ERRORS = [
     "message can't be deleted",
@@ -79,6 +81,7 @@ class Manager:
             disable_web_page_preview: bool | None = UNSET_DISABLE_WEB_PAGE_PREVIEW,
             disable_notification: bool | None = None,
             reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+            register_window: bool = True,
     ) -> None:
         """
         Send a message using the bot.
@@ -88,6 +91,10 @@ class Manager:
         :param disable_web_page_preview: Disable web page preview.
         :param disable_notification: Disable notification.
         :param reply_markup: The reply markup.
+        :param register_window: When ``True`` the sent message becomes the
+            replaceable window (the previous one is removed and this id is
+            stored). When ``False`` the previous window is still cleared but
+            this message is left untouched by later window transitions.
 
         :return: None.
         """
@@ -100,23 +107,30 @@ class Manager:
             reply_markup=reply_markup,
         )
         await self.delete_previous_message()
-        await self.state.update_data(message_id=message.message_id)
+        await self.state.update_data(
+            message_id=message.message_id if register_window else None
+        )
 
     async def send_copied_message(
             self,
             from_chat_id: int,
             message_id: int,
             reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+            register_window: bool = True,
     ) -> None:
         """
         Copy an existing message into the current user's chat.
 
         Mirrors :meth:`send_message` bookkeeping: the previous window message is
-        removed and the new message id is stored in the FSM context.
+        removed and, when ``register_window`` is ``True``, the new message id is
+        stored in the FSM context. Pass ``register_window=False`` for content
+        that should stay in the chat untouched (e.g. the welcome message).
 
         :param from_chat_id: Chat that holds the source message.
         :param message_id: Identifier of the source message.
         :param reply_markup: The reply markup.
+        :param register_window: Whether the copied message becomes the
+            replaceable window.
         :return: None.
         """
         message_id_ = await self.bot.copy_message(
@@ -126,7 +140,9 @@ class Manager:
             reply_markup=reply_markup,
         )
         await self.delete_previous_message()
-        await self.state.update_data(message_id=message_id_.message_id)
+        await self.state.update_data(
+            message_id=message_id_.message_id if register_window else None
+        )
 
     @staticmethod
     async def delete_message(message: Message) -> None:
@@ -140,11 +156,13 @@ class Manager:
 
     async def delete_previous_message(self) -> None | Message:
         """
-        Delete the previous message.
+        Delete the previous window message.
 
-        This method attempts to delete the previous message identified by the stored message ID. If deletion is not
-        possible (e.g., due to a message not found error), it attempts to edit the previous message with a placeholder
-        __emoji. If editing is also not possible, it raises TelegramBadRequest with the appropriate error message.
+        Attempts to delete the message identified by the stored message ID. If deletion is not possible (e.g. the
+        message is too old to delete for everyone), it falls back to editing it down to a placeholder __emoji so a
+        stale interactive screen is neutralised. Window messages are always sent as text, so the edit fallback always
+        applies; content that is not a window (see ``send_message``/``send_copied_message`` ``register_window``) never
+        reaches this method.
 
         :return: The edited Message object or None if no previous message was found.
 
